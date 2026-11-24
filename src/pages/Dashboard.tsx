@@ -1,4 +1,4 @@
-import PageHeader from '../components/PageHeader'
+import PageHeader from '../components/Pageheader'
 
 export default function Dashboard() {
   return (
