@@ -1,39 +1,23 @@
-import { useEffect, useState } from 'react'
-import { supabase } from './lib/supabase'
-
-type Category = {
-  id: string
-  name: string
-}
+import { Route, Routes } from 'react-router-dom'
+import AppLayout from './components/layout/AppLayout'
+import Dashboard from './pages/Dashboard'
+import Assets from './pages/Assets'
+import Employees from './pages/Employees'
+import Assignments from './pages/Assignments'
+import Maintenance from './pages/Maintenance'
+import NotFound from './pages/NotFound'
 
 export default function App() {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    async function getCategories() {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('id, name')
-        .order('name')
-
-      if (error) {
-        setError(error.message)
-        return
-      }
-      setCategories(data ?? [])
-    }
-
-    getCategories()
-  }, [])
-
-  if (error) return <p>Error: {error}</p>
-
   return (
-    <ul className="list-disc p-8 pl-12 text-lg font-medium text-blue-600">
-      {categories.map((category) => (
-        <li key={category.id}>{category.name}</li>
-      ))}
-    </ul>
+    <Routes>
+      <Route element={<AppLayout />}>
+        <Route index element={<Dashboard />} />
+        <Route path="assets" element={<Assets />} />
+        <Route path="employees" element={<Employees />} />
+        <Route path="assignments" element={<Assignments />} />
+        <Route path="maintenance" element={<Maintenance />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
   )
 }
