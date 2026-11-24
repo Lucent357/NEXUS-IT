@@ -30,7 +30,7 @@ export default function App() {
   if (error) return <p>Error: {error}</p>
 
   return (
-    <ul>
+    <ul className="list-disc p-8 pl-12 text-lg font-medium text-blue-600">
       {categories.map((category) => (
         <li key={category.id}>{category.name}</li>
       ))}
