@@ -47,3 +47,26 @@ export type Employee = {
   locations: { name: string } | null
   assignments: EmployeeAssignment[]
 }
+
+export type Assignment = {
+  id: string
+  asset_id: string
+  employee_id: string
+  assigned_at: string
+  returned_at: string | null
+  notes: string | null
+  assets: { asset_tag: string; name: string } | null
+  employees: { employee_code: string; full_name: string } | null
+}
+
+export type AssetOption = {
+  id: string
+  asset_tag: string
+  name: string
+}
+
+export type EmployeeOption = {
+  id: string
+  employee_code: string
+  full_name: string
+}
