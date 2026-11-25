@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Search } from 'lucide-react'
+import { Pencil, Plus, Search } from 'lucide-react'
+import AssetForm from '../components/AssetForm'
+import Modal from '../components/Modal'
 import PageHeader from '../components/Pageheader'
 import StatusBadge from '../components/StatusBadge'
 import { supabase } from '../lib/supabase'
 import { formatDate } from '../lib/format'
-import type { Asset, AssetStatus } from '../types/database'
+import type { Asset, AssetStatus, Option } from '../types/database'
 
 const statusOptions: { value: AssetStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'Semua status' },
@@ -16,6 +18,8 @@ const statusOptions: { value: AssetStatus | 'all'; label: string }[] = [
 
 export default function Assets() {
   const [assets, setAssets] = useState<Asset[]>([])
+  const [categories, setCategories] = useState<Option[]>([])
+  const [locations, setLocations] = useState<Option[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,36 +27,36 @@ export default function Assets() {
   const [statusFilter, setStatusFilter] = useState<AssetStatus | 'all'>('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
 
-  useEffect(() => {
-    async function loadAssets() {
-      const { data, error } = await supabase
+  const [showForm, setShowForm] = useState(false)
+  const [editing, setEditing] = useState<Asset | null>(null)
+
+  const [reloadKey, setReloadKey] = useState(0)
+
+useEffect(() => {
+  async function loadData() {
+    const [assetsRes, categoriesRes, locationsRes] = await Promise.all([
+      supabase
         .from('assets')
-        .select(
-          `id, asset_tag, name, brand, model, status, condition,
-           purchase_price, warranty_expiry,
-           categories(name), locations(name)`,
-        )
-        .order('asset_tag')
+        .select('*, categories(name), locations(name)')
+        .order('asset_tag'),
+      supabase.from('categories').select('id, name').order('name'),
+      supabase.from('locations').select('id, name').order('name'),
+    ])
 
-      if (error) setError(error.message)
-      else setAssets((data ?? []) as unknown as Asset[])
-      setLoading(false)
+    const firstError = assetsRes.error ?? categoriesRes.error ?? locationsRes.error
+    if (firstError) {
+      setError(firstError.message)
+    } else {
+      setError(null)
+      setAssets((assetsRes.data ?? []) as unknown as Asset[])
+      setCategories(categoriesRes.data ?? [])
+      setLocations(locationsRes.data ?? [])
     }
+    setLoading(false)
+  }
 
-    loadAssets()
-  }, [])
-
-  const categoryOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          assets
-            .map((a) => a.categories?.name)
-            .filter((name): name is string => !!name),
-        ),
-      ).sort(),
-    [assets],
-  )
+  loadData()
+}, [reloadKey])
 
   const filteredAssets = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -69,6 +73,26 @@ export default function Assets() {
     })
   }, [assets, search, statusFilter, categoryFilter])
 
+  function openAdd() {
+    setEditing(null)
+    setShowForm(true)
+  }
+
+  function openEdit(asset: Asset) {
+    setEditing(asset)
+    setShowForm(true)
+  }
+
+  function closeForm() {
+    setShowForm(false)
+    setEditing(null)
+  }
+
+ function handleSaved() {
+  closeForm()
+  setReloadKey((k) => k + 1)
+}
+
   return (
     <div>
       <PageHeader
@@ -76,7 +100,7 @@ export default function Assets() {
         description="Kelola seluruh aset IT perusahaan."
       />
 
-      <div className="mb-4 flex flex-wrap gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-xs">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -106,12 +130,20 @@ export default function Assets() {
           className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500"
         >
           <option value="all">Semua kategori</option>
-          {categoryOptions.map((name) => (
-            <option key={name} value={name}>
-              {name}
+          {categories.map((c) => (
+            <option key={c.id} value={c.name}>
+              {c.name}
             </option>
           ))}
         </select>
+
+        <button
+          onClick={openAdd}
+          className="ml-auto flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          <Plus className="h-4 w-4" />
+          Tambah Aset
+        </button>
       </div>
 
       {error && (
@@ -134,6 +166,7 @@ export default function Assets() {
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Kondisi</th>
                 <th className="px-4 py-3 font-medium">Garansi s/d</th>
+                <th className="px-4 py-3 font-medium">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -155,12 +188,21 @@ export default function Assets() {
                   </td>
                   <td className="px-4 py-3 capitalize">{a.condition}</td>
                   <td className="px-4 py-3">{formatDate(a.warranty_expiry)}</td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => openEdit(a)}
+                      aria-label={`Ubah ${a.name}`}
+                      className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-indigo-600"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  </td>
                 </tr>
               ))}
 
               {filteredAssets.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
+                  <td colSpan={8} className="px-4 py-10 text-center text-slate-500">
                     Tidak ada aset yang cocok dengan pencarian atau filter.
                   </td>
                 </tr>
@@ -174,6 +216,18 @@ export default function Assets() {
         <p className="mt-3 text-xs text-slate-500">
           Menampilkan {filteredAssets.length} dari {assets.length} aset
         </p>
+      )}
+
+      {showForm && (
+        <Modal title={editing ? 'Ubah Aset' : 'Tambah Aset'} onClose={closeForm}>
+          <AssetForm
+            asset={editing}
+            categories={categories}
+            locations={locations}
+            onSaved={handleSaved}
+            onCancel={closeForm}
+          />
+        </Modal>
       )}
     </div>
   )
