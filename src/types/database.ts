@@ -70,3 +70,20 @@ export type EmployeeOption = {
   employee_code: string
   full_name: string
 }
+
+export type MaintenancePriority = 'low' | 'medium' | 'high' | 'critical'
+export type MaintenanceStatus = 'open' | 'in_progress' | 'completed'
+
+export type MaintenanceRecord = {
+  id: string
+  asset_id: string
+  issue: string
+  priority: MaintenancePriority
+  status: MaintenanceStatus
+  technician: string | null
+  reported_at: string
+  completed_at: string | null
+  cost: number | null
+  resolution_notes: string | null
+  assets: { asset_tag: string; name: string } | null
+}

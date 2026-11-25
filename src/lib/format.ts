@@ -13,3 +13,12 @@ export function todayISO(): string {
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
   return local.toISOString().slice(0, 10)
 }
+
+export function formatRupiah(value: number | null): string {
+  if (value === null || value === undefined) return '-'
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(Number(value))
+}
