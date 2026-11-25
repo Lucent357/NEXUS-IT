@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import type { FormEvent, ReactNode } from 'react'
+import type { FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Asset, AssetCondition, AssetStatus, Option } from '../types/database'
+import Field from './FormField'
+import { inputClass } from '../lib/styles'
 
 type AssetFormProps = {
   asset: Asset | null // null = mode tambah, terisi = mode ubah
@@ -28,32 +30,6 @@ type FormState = {
 }
 
 type FormErrors = Partial<Record<keyof FormState, string>>
-
-const inputClass =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500'
-
-function Field({
-  label,
-  error,
-  required,
-  children,
-}: {
-  label: string
-  error?: string
-  required?: boolean
-  children: ReactNode
-}) {
-  return (
-    <div>
-      <label className="mb-1 block text-sm font-medium text-slate-700">
-        {label}
-        {required && <span className="text-red-500"> *</span>}
-      </label>
-      {children}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-    </div>
-  )
-}
 
 function toFormState(asset: Asset | null): FormState {
   return {

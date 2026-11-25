@@ -24,3 +24,26 @@ export type Asset = {
   categories: { name: string } | null
   locations: { name: string } | null
 }
+
+export type EmployeeStatus = 'active' | 'inactive'
+
+export type EmployeeAssignment = {
+  id: string
+  assigned_at: string
+  returned_at: string | null
+  assets: { asset_tag: string; name: string } | null
+}
+
+export type Employee = {
+  id: string
+  employee_code: string
+  full_name: string
+  email: string
+  job_title: string | null
+  department_id: string
+  location_id: string
+  status: EmployeeStatus
+  departments: { name: string } | null
+  locations: { name: string } | null
+  assignments: EmployeeAssignment[]
+}
