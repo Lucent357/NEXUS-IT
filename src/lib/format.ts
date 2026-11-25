@@ -22,3 +22,10 @@ export function formatRupiah(value: number | null): string {
     maximumFractionDigits: 0,
   }).format(Number(value))
 }
+
+// Menambah hari pada tanggal ISO (YYYY-MM-DD) tanpa terpengaruh zona waktu
+export function addDaysISO(iso: string, days: number): string {
+  const d = new Date(`${iso}T00:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + days)
+  return d.toISOString().slice(0, 10)
+}
