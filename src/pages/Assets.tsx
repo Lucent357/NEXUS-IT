@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Pencil, Plus, Search } from 'lucide-react'
+import { Archive, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import AssetForm from '../components/AssetForm'
 import Modal from '../components/Modal'
 import PageHeader from '../components/Pageheader'
@@ -7,6 +7,7 @@ import StatusBadge from '../components/StatusBadge'
 import { supabase } from '../lib/supabase'
 import { formatDate } from '../lib/format'
 import type { Asset, AssetStatus, Option } from '../types/database'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 const statusOptions: { value: AssetStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'Semua status' },
@@ -29,6 +30,9 @@ export default function Assets() {
 
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState<Asset | null>(null)
+  const [pending, setPending] = useState<{ type: 'retire' | 'delete'; asset: Asset } | null>(null)
+const [actionLoading, setActionLoading] = useState(false)
+const [actionError, setActionError] = useState<string | null>(null)
 
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -90,6 +94,39 @@ useEffect(() => {
 
  function handleSaved() {
   closeForm()
+  setReloadKey((k) => k + 1)
+}
+
+function askConfirm(type: 'retire' | 'delete', asset: Asset) {
+  setActionError(null)
+  setPending({ type, asset })
+}
+
+async function handleConfirm() {
+  if (!pending) return
+  const { type, asset } = pending
+
+  setActionLoading(true)
+  setActionError(null)
+
+  const { error } =
+    type === 'retire'
+      ? await supabase.from('assets').update({ status: 'retired' }).eq('id', asset.id)
+      : await supabase.from('assets').delete().eq('id', asset.id)
+
+  setActionLoading(false)
+
+  if (error) {
+    // 23503 = pelanggaran foreign key (aset masih dipakai di tabel lain)
+    setActionError(
+      error.code === '23503'
+        ? 'Aset ini punya riwayat assignment atau maintenance sehingga tidak bisa dihapus. Gunakan Retire.'
+        : `Gagal memproses: ${error.message}`,
+    )
+    return
+  }
+
+  setPending(null)
   setReloadKey((k) => k + 1)
 }
 
@@ -171,34 +208,58 @@ useEffect(() => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredAssets.map((a) => (
-                <tr key={a.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-mono text-xs text-slate-600">
-                    {a.asset_tag}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-slate-900">{a.name}</div>
-                    <div className="text-xs text-slate-500">
-                      {[a.brand, a.model].filter(Boolean).join(' · ')}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">{a.categories?.name ?? '-'}</td>
-                  <td className="px-4 py-3">{a.locations?.name ?? '-'}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={a.status} />
-                  </td>
-                  <td className="px-4 py-3 capitalize">{a.condition}</td>
-                  <td className="px-4 py-3">{formatDate(a.warranty_expiry)}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => openEdit(a)}
-                      aria-label={`Ubah ${a.name}`}
-                      className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-indigo-600"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+  <tr key={a.id} className="hover:bg-slate-50">
+    <td className="px-4 py-3 font-mono text-xs text-slate-600">
+      {a.asset_tag}
+    </td>
+    <td className="px-4 py-3">
+      <div className="font-medium text-slate-900">{a.name}</div>
+      <div className="text-xs text-slate-500">
+        {[a.brand, a.model].filter(Boolean).join(' · ')}
+      </div>
+    </td>
+    <td className="px-4 py-3">{a.categories?.name ?? '-'}</td>
+    <td className="px-4 py-3">{a.locations?.name ?? '-'}</td>
+    <td className="px-4 py-3">
+      <StatusBadge status={a.status} />
+    </td>
+    <td className="px-4 py-3 capitalize">{a.condition}</td>
+    <td className="px-4 py-3">{formatDate(a.warranty_expiry)}</td>
+    <td className="px-4 py-3">
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => openEdit(a)}
+          aria-label={`Ubah ${a.name}`}
+          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-indigo-600"
+        >
+          <Pencil className="h-4 w-4" />
+        </button>
+
+        {a.status === 'available' && (
+          <button
+            onClick={() => askConfirm('retire', a)}
+            aria-label={`Retire ${a.name}`}
+            title="Retire"
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-amber-600"
+          >
+            <Archive className="h-4 w-4" />
+          </button>
+        )}
+
+        {(a.status === 'available' || a.status === 'retired') && (
+          <button
+            onClick={() => askConfirm('delete', a)}
+            aria-label={`Hapus ${a.name}`}
+            title="Hapus"
+            className="rounded-lg p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    </td>
+  </tr>
+))}
 
               {filteredAssets.length === 0 && (
                 <tr>
@@ -229,6 +290,23 @@ useEffect(() => {
           />
         </Modal>
       )}
+
+      {pending && (
+  <ConfirmDialog
+    title={pending.type === 'retire' ? 'Retire aset?' : 'Hapus aset?'}
+    message={
+      pending.type === 'retire'
+        ? `${pending.asset.asset_tag} · ${pending.asset.name} akan ditandai Retired. Riwayatnya tetap tersimpan dan bisa diaktifkan kembali lewat menu ubah.`
+        : `${pending.asset.asset_tag} · ${pending.asset.name} akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.`
+    }
+    confirmLabel={pending.type === 'retire' ? 'Retire' : 'Hapus'}
+    danger={pending.type === 'delete'}
+    loading={actionLoading}
+    error={actionError}
+    onConfirm={handleConfirm}
+    onCancel={() => setPending(null)}
+  />
+)}
     </div>
   )
 }
