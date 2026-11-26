@@ -244,7 +244,7 @@ export default function Dashboard() {
 
       {!loading && !error && (
         <div className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <StatCard label="Total Aset" value={assets.length} icon={Package} tone="bg-indigo-100 text-indigo-600" />
             <StatCard label="In Use" value={counts.in_use} icon={UserCheck} tone="bg-blue-100 text-blue-600" />
             <StatCard label="Available" value={counts.available} icon={PackageCheck} tone="bg-emerald-100 text-emerald-600" />
@@ -253,8 +253,8 @@ export default function Dashboard() {
             <StatCard label="Nilai Aset Aktif" value={formatRupiah(totalValue)} icon={Wallet} tone="bg-violet-100 text-violet-600" />
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-3">
-            <section className="rounded-xl border border-slate-200 bg-white p-5 lg:col-span-2">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-5 lg:col-span-2">
               <h2 className="mb-4 text-base font-semibold text-slate-900">Aktivitas Terbaru</h2>
               {activities.length === 0 ? (
                 <p className="text-sm text-slate-500">Belum ada aktivitas.</p>
@@ -279,7 +279,7 @@ export default function Dashboard() {
               )}
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-5">
+            <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-5">
               <h2 className="mb-4 text-base font-semibold text-slate-900">Perlu Perhatian</h2>
 
               <h3 className="mb-2 text-xs font-medium uppercase text-slate-500">
@@ -329,13 +329,13 @@ export default function Dashboard() {
             </section>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            <section className="rounded-xl border border-slate-200 bg-white p-5">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-5">
               <h2 className="mb-4 text-base font-semibold text-slate-900">Aset per Kategori</h2>
               <BarList items={byCategory} />
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-5">
+            <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-5">
               <h2 className="mb-4 text-base font-semibold text-slate-900">Aset per Lokasi</h2>
               <BarList items={byLocation} />
             </section>
