@@ -148,7 +148,7 @@ export default function Maintenance() {
           />
         </div>
 
-        <div className="flex rounded-lg border border-slate-300 bg-white p-0.5">
+        <div className="flex max-w-full overflow-x-auto rounded-lg border border-slate-300 bg-white p-0.5">
           {tabs.map((t) => (
             <button
               key={t.value}

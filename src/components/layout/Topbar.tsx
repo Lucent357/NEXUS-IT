@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, LogOut } from 'lucide-react'
+import { ChevronDown, LogOut, Menu } from 'lucide-react'
 import { useAuth } from '../../auth/useAuth'
 
-export default function Topbar() {
+type TopbarProps = {
+  onMenuClick: () => void
+}
+
+export default function Topbar({ onMenuClick }: TopbarProps) {
   const { session, profile, isDemo, signOut } = useAuth()
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -29,16 +33,27 @@ export default function Topbar() {
   const initial = name.charAt(0).toUpperCase()
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-8">
-      <div>
+    <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 sm:px-8">
+      <div className="flex min-w-0 items-center gap-3">
+        <button
+          onClick={onMenuClick}
+          aria-label="Buka menu"
+          className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+
         {isDemo && (
-          <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
-            Mode demo: Anda dapat mencoba semua fitur, tetapi perubahan tidak akan disimpan.
+          <span className="truncate rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
+            <span className="sm:hidden">Mode demo</span>
+            <span className="hidden sm:inline">
+              Mode demo: Anda dapat mencoba semua fitur, tetapi perubahan tidak akan disimpan.
+            </span>
           </span>
         )}
       </div>
 
-      <div className="relative" ref={menuRef}>
+      <div className="relative shrink-0" ref={menuRef}>
         <button
           onClick={() => setOpen((v) => !v)}
           aria-haspopup="menu"

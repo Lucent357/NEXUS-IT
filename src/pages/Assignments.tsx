@@ -112,12 +112,11 @@ export default function Assignments() {
           />
         </div>
 
-        <div className="flex rounded-lg border border-slate-300 bg-white p-0.5">
-          {tabs.map((t) => (
+        <div className="flex max-w-full overflow-x-auto rounded-lg border border-slate-300 bg-white p-0.5">          {tabs.map((t) => (
             <button
               key={t.value}
               onClick={() => setTab(t.value)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 tab === t.value
                   ? 'bg-indigo-600 text-white'
                   : 'text-slate-600 hover:bg-slate-100'
