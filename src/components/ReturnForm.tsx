@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useAuth } from '../auth/useAuth'
+import { DEMO_MESSAGE } from '../auth/demo'
 import Field from './FormField'
+import FormError from './FormError'
 import { inputClass } from '../lib/styles'
 import { formatDate, todayISO } from '../lib/format'
 import { supabase } from '../lib/supabase'
@@ -13,6 +16,7 @@ type ReturnFormProps = {
 }
 
 export default function ReturnForm({ assignment, onSaved, onCancel }: ReturnFormProps) {
+  const { isDemo } = useAuth()
   const [returnedAt, setReturnedAt] = useState(todayISO())
   const [condition, setCondition] = useState('')
   const [notes, setNotes] = useState('')
@@ -37,6 +41,11 @@ export default function ReturnForm({ assignment, onSaved, onCancel }: ReturnForm
       return
     }
     setDateError(null)
+
+    if (isDemo) {
+      setSubmitError(DEMO_MESSAGE)
+      return
+    }
 
     setSaving(true)
     const { error } = await supabase.rpc('return_asset', {
@@ -104,11 +113,7 @@ export default function ReturnForm({ assignment, onSaved, onCancel }: ReturnForm
         </Field>
       </div>
 
-      {submitError && (
-        <div className="mx-6 mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {submitError}
-        </div>
-      )}
+      {submitError && <FormError message={submitError} />}
 
       <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
         <button

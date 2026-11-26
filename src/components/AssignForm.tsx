@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useAuth } from '../auth/useAuth'
+import { DEMO_MESSAGE } from '../auth/demo'
 import Field from './FormField'
+import FormError from './FormError'
 import { inputClass } from '../lib/styles'
 import { todayISO } from '../lib/format'
 import { supabase } from '../lib/supabase'
@@ -43,6 +46,7 @@ export default function AssignForm({
   onSaved,
   onCancel,
 }: AssignFormProps) {
+  const { isDemo } = useAuth()
   const [values, setValues] = useState<FormState>({
     asset_id: '',
     employee_id: '',
@@ -64,6 +68,11 @@ export default function AssignForm({
     const validationErrors = validate(values)
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) return
+
+    if (isDemo) {
+      setSubmitError(DEMO_MESSAGE)
+      return
+    }
 
     setSaving(true)
     const { error } = await supabase.rpc('assign_asset', {
@@ -144,11 +153,7 @@ export default function AssignForm({
         </Field>
       </div>
 
-      {submitError && (
-        <div className="mx-6 mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {submitError}
-        </div>
-      )}
+      {submitError && <FormError message={submitError} />}
 
       <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
         <button

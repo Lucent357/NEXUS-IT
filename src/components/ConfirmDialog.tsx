@@ -1,3 +1,5 @@
+import FormError from './FormError'
+
 type ConfirmDialogProps = {
   title: string
   message: string
@@ -31,11 +33,7 @@ export default function ConfirmDialog({
         <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
         <p className="mt-2 text-sm text-slate-600">{message}</p>
 
-        {error && (
-          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
+        {error && <FormError message={error} className="mt-4" />}
 
         <div className="mt-6 flex justify-end gap-3">
           <button

@@ -7,6 +7,8 @@ import PageHeader from '../components/Pageheader'
 import { supabase } from '../lib/supabase'
 import { formatDate } from '../lib/format'
 import type { Employee, EmployeeStatus, Option } from '../types/database'
+import { useAuth } from '../auth/useAuth'
+import { DEMO_MESSAGE } from '../auth/demo'
 
 const statusOptions: { value: EmployeeStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'Semua status' },
@@ -19,6 +21,7 @@ function activeAssignments(employee: Employee) {
 }
 
 export default function Employees() {
+  const { isDemo } = useAuth()
   const [employees, setEmployees] = useState<Employee[]>([])
   const [departments, setDepartments] = useState<Option[]>([])
   const [locations, setLocations] = useState<Option[]>([])
@@ -111,6 +114,10 @@ export default function Employees() {
 
   async function handleConfirm() {
     if (!pending) return
+    if (isDemo) {
+  setActionError(DEMO_MESSAGE)
+  return
+}
     const { type, employee } = pending
 
     setActionLoading(true)

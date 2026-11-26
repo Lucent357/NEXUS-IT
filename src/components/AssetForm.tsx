@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useAuth } from '../auth/useAuth'
+import { DEMO_MESSAGE } from '../auth/demo'
 import { supabase } from '../lib/supabase'
 import type { Asset, AssetCondition, AssetStatus, Option } from '../types/database'
 import Field from './FormField'
+import FormError from './FormError'
 import { inputClass } from '../lib/styles'
 
 type AssetFormProps = {
@@ -82,6 +85,7 @@ export default function AssetForm({
   onSaved,
   onCancel,
 }: AssetFormProps) {
+  const { isDemo } = useAuth()
   const [values, setValues] = useState<FormState>(toFormState(asset))
   const [errors, setErrors] = useState<FormErrors>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -102,6 +106,11 @@ export default function AssetForm({
     const validationErrors = validate(values)
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) return
+
+    if (isDemo) {
+      setSubmitError(DEMO_MESSAGE)
+      return
+    }
 
     const payload = {
       asset_tag: values.asset_tag.trim(),
@@ -293,11 +302,7 @@ export default function AssetForm({
         </div>
       </div>
 
-      {submitError && (
-        <div className="mx-6 mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {submitError}
-        </div>
-      )}
+      {submitError && <FormError message={submitError} />}
 
       <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
         <button

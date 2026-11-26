@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useAuth } from '../auth/useAuth'
+import { DEMO_MESSAGE } from '../auth/demo'
 import Field from './FormField'
+import FormError from './FormError'
 import { inputClass } from '../lib/styles'
 import { supabase } from '../lib/supabase'
 import type { Employee, EmployeeStatus, Option } from '../types/database'
@@ -62,6 +65,7 @@ export default function EmployeeForm({
   onSaved,
   onCancel,
 }: EmployeeFormProps) {
+  const { isDemo } = useAuth()
   const [values, setValues] = useState<FormState>(toFormState(employee))
   const [errors, setErrors] = useState<FormErrors>({})
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -82,6 +86,11 @@ export default function EmployeeForm({
     const validationErrors = validate(values)
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) return
+
+    if (isDemo) {
+      setSubmitError(DEMO_MESSAGE)
+      return
+    }
 
     const payload = {
       employee_code: values.employee_code.trim(),
@@ -200,11 +209,7 @@ export default function EmployeeForm({
         )}
       </div>
 
-      {submitError && (
-        <div className="mx-6 mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {submitError}
-        </div>
-      )}
+      {submitError && <FormError message={submitError} />}
 
       <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
         <button

@@ -8,6 +8,8 @@ import { supabase } from '../lib/supabase'
 import { formatDate } from '../lib/format'
 import type { Asset, AssetStatus, Option } from '../types/database'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { useAuth } from '../auth/useAuth'
+import { DEMO_MESSAGE } from '../auth/demo'
 
 const statusOptions: { value: AssetStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'Semua status' },
@@ -18,6 +20,7 @@ const statusOptions: { value: AssetStatus | 'all'; label: string }[] = [
 ]
 
 export default function Assets() {
+  const { isDemo } = useAuth()
   const [assets, setAssets] = useState<Asset[]>([])
   const [categories, setCategories] = useState<Option[]>([])
   const [locations, setLocations] = useState<Option[]>([])
@@ -104,6 +107,10 @@ function askConfirm(type: 'retire' | 'delete', asset: Asset) {
 
 async function handleConfirm() {
   if (!pending) return
+  if (isDemo) {
+  setActionError(DEMO_MESSAGE)
+  return
+}
   const { type, asset } = pending
 
   setActionLoading(true)

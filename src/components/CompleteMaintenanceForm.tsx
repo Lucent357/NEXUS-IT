@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useAuth } from '../auth/useAuth'
+import { DEMO_MESSAGE } from '../auth/demo'
 import Field from './FormField'
+import FormError from './FormError'
 import { inputClass } from '../lib/styles'
 import { formatDate, todayISO } from '../lib/format'
 import { supabase } from '../lib/supabase'
@@ -23,6 +26,7 @@ export default function CompleteMaintenanceForm({
   onSaved,
   onCancel,
 }: CompleteMaintenanceFormProps) {
+  const { isDemo } = useAuth()
   const [completedAt, setCompletedAt] = useState(todayISO())
   const [cost, setCost] = useState('')
   const [notes, setNotes] = useState('')
@@ -50,6 +54,11 @@ export default function CompleteMaintenanceForm({
 
     setErrors(next)
     if (Object.keys(next).length > 0) return
+
+    if (isDemo) {
+      setSubmitError(DEMO_MESSAGE)
+      return
+    }
 
     setSaving(true)
     const { error } = await supabase.rpc('complete_maintenance', {
@@ -145,11 +154,7 @@ export default function CompleteMaintenanceForm({
         </label>
       </div>
 
-      {submitError && (
-        <div className="mx-6 mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {submitError}
-        </div>
-      )}
+      {submitError && <FormError message={submitError} />}
 
       <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
         <button
